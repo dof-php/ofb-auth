@@ -1,0 +1,35 @@
+{
+    "name": "dof-php/ofb-auth",
+    "description": "Authentication and authorization solutions provide by DOF PHP",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "dof-php",
+            "email": "me@dof.php"
+        }
+    ],
+    "require": {
+        "php": "^7.3",
+        "dof-php/utils": "dev-master"
+    },
+    "require-dev": {
+        "dof-php/testing": "dev-master"
+    },
+ 	"autoload": {
+		"psr-4": {
+			"DOF\\OFB\\Auth\\": "./src/"
+		},
+		"files": [
+		],
+		"exclude-from-classmap": [
+       ]
+    },
+    "autoload-dev": {
+		"psr-4": {
+			"DOF\\OFB\\Auth\\Test\\": "./test/"
+		}
+    },
+	"minimum-stability": "dev",
+    "prefer-stable": true
+}
