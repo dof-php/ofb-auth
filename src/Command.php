@@ -18,8 +18,7 @@ class Command
     {
         $jwt = $console->first();
         if (IS::empty($jwt)) {
-            $console->fail('MISSING_JWT');
-            return;
+            return $console->fail('MISSING_JWT');
         }
 
         $console->line(JWT::parse($jwt));

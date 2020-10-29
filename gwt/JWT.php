@@ -2,10 +2,14 @@
 
 $gwt->exceptor('Test JWT::issue() #1', function () {
     $jwt = new \DOF\OFB\Auth\JWT;
-    $jwt->issue();
+    $jwt->setTTL(-1)->issue();
 }, \DOF\OFB\Auth\Exceptor\JWTExceptor::class, 'BAD_TOKEN_TTL_SETTING');
 
-$gwt->exceptor('Test JWT::issue() #2', function () {
+$gwt->exceptor('Test JWT::issue() #2.1', function () {
+    $jwt = new \DOF\OFB\Auth\JWT;
+    $jwt->issue();  // default TTL
+}, \DOF\OFB\Auth\Exceptor\JWTExceptor::class, 'MISSING_OR_INVALID_SECRET_ID');
+$gwt->exceptor('Test JWT::issue() #2.2', function () {
     $jwt = new \DOF\OFB\Auth\JWT;
     $jwt->setTTL(60)->issue();
 }, \DOF\OFB\Auth\Exceptor\JWTExceptor::class, 'MISSING_OR_INVALID_SECRET_ID');

@@ -33,58 +33,46 @@ class BearerAuth
     /** @var array: The parameter names will be checked in request when AUTHORIZATION header not found */
     protected $allowTokenParameters = ['__token', '__bearer_token', '__auth_token'];
 
-    public function pipein($request, $response, $route, $port)
+    final public function pipein($request, $response, $route, $port)
     {
         $header = \trim((string) $request->getHeader('AUTHORIZATION'));
-        $token  = '';
         if ($header) {
             if (! Str::eq(Str::first($header, 7), 'Bearer ', true)) {
                 return $response->abort(401, 'INVALID_BEARER_TOKEN');
             }
-
-            $token = \mb_substr($header, 7);
+            $token = Str::last($header, 7, false);
         } elseif ($this->allowTokenParameters) {
-            $key   = null;
-            $token = (string) $request->match($this->allowTokenParameters, $key);
+            $token = (string) $request->match($this->allowTokenParameters);
         }
 
-        $token = \trim($token);
-        if (! $token) {
+        if ((! isset($token)) || IS::empty($token = \trim($token))) {
             return $response->abort(401, 'MISSING_TOKEN_HEADER_OR_PARAMETER');
         }
 
-        $secret = ENV::final(static::class, $this->secret);
+        // parse and get secret id
+        $data = JWT::parse($token);
+        if (\is_null($sid = ($data['claims']['sid'] ?? null)) || ((! \is_string($sid)) && (! \is_int($sid)))) {
+            return $response->exceptor('MISSING_OR_INVALID_TOKEN_SECRET_ID', compact('sid'));
+        }
+
+        $static = static::class;
+        $secret = ($static === __CLASS__) ? ENV::systemGet($this->secret) : ENV::final($static, $this->secret);
         if ((! $secret) || (! \is_array($secret))) {
             return $response->exceptor('MISSING_OR_INVALID_TOKEN_SECRET', [
                 'key' => $this->secret,
-                'ns'  => static::class,
+                'ns'  => $static,
             ]);
         }
-        $id = $secret[0] ?? null;
-        if (\is_null($id) || (! \is_int($id))) {
-            return $response->exceptor('MISSING_OR_NON_INT_TOKEN_SECRET_ID');
-        }
-        $key = $secret[1] ?? null;
-        if (\is_null($key) || IS::empty($key) || (! \is_string($key))) {
-            return $response->exceptor('MISSING_OR_NON_STRING_TOKEN_SECRET_ID');
+        if (\is_null($skey = $secret[$sid] ?? null) || IS::empty($skey) || (! \is_string($skey))) {
+            return $response->exceptor('MISSING_OR_NON_STRING_TOKEN_SECRET_KEY');
         }
 
         try {
-            $jwt = JWT::setSecretId($id)->setSecretKey($key);
+            $jwt = JWT::setSecretKey($skey);
 
-            if (\method_exists($this, 'beforeTokenVerify')) {
-                $jwt->setBeforeVerify(function ($token) {
-                    $this->beforeTokenVerify($token);
-                });
-            }
-            if (\method_exists($this, 'afterTokenVerify')) {
-                $jwt->setAfterVerify(function ($params, $token) {
-                    $this->afterTokenVerify($params, $token);
-                });
-            }
-            if (\method_exists($this, 'onTokenVerifyExpired')) {
-                $jwt->setOnTokenVerifyExpired(function ($token, $params) {
-                    $this->onTokenVerifyExpired($token, $params);
+            if (\method_exists($this, 'onJWTExpired')) {
+                $jwt->setOnJWTExpired(function ($token, $params) {
+                    $this->onJWTExpired($token, $params);
                 });
             }
 
