@@ -51,8 +51,8 @@ class BearerAuth
 
         // parse and get secret id
         $data = JWT::parse($token);
-        if (\is_null($sid = ($data['claims']['sid'] ?? null)) || ((! \is_string($sid)) && (! \is_int($sid)))) {
-            return $response->exceptor('MISSING_OR_INVALID_TOKEN_SECRET_ID', compact('sid'));
+        if (\is_null($skid = ($data['header']['kid'] ?? null)) || ((! \is_string($skid)) && (! \is_int($skid)))) {
+            return $response->exceptor('MISSING_OR_INVALID_TOKEN_SECRET_KEY_ID', compact('skid'));
         }
 
         $static = static::class;
@@ -63,8 +63,8 @@ class BearerAuth
                 'ns'  => $static,
             ]);
         }
-        if (\is_null($skey = $secret[$sid] ?? null) || IS::empty($skey) || (! \is_string($skey))) {
-            return $response->exceptor('MISSING_OR_NON_STRING_TOKEN_SECRET_KEY');
+        if (\is_null($skey = $secret[$skid] ?? null) || IS::empty($skey) || (! \is_string($skey))) {
+            return $response->exceptor('MISSING_OR_NONSTRING_TOKEN_SECRET_KEY');
         }
 
         try {

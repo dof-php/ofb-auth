@@ -15,7 +15,7 @@ use DOF\OFB\Auth\Exceptor\ExpiredJWT;
 use DOF\OFB\Auth\Exceptor\InvalidJWT;
 
 /**
- * Json Web Token
+ * https://en.wikipedia.org/wiki/JSON_Web_Token
  */
 class JWT
 {
@@ -65,19 +65,20 @@ class JWT
         $ts = $this->timestamp ?? \time();
 
         $header = static::encode([
-            'typ' => 'JWT',
+            'typ' => 'JWT',     // Token Type
+            // 'cty' => null,   // Content Type
             'alg' => $this->algo,
+            'kid' => $this->secretId,     // JWT secret key ID
         ]);
         $claims = [
             'iss' => 'dof',    // Issuer
             // 'sub' => null,  // Subject
             // 'aud' => null,  // Audience
-            // 'jti' => null,  // JWT ID
+            'exp' => $ts + $this->ttl,    // Expiration Time
             'nbf' => $ts,      // Not Before
             'iat' => $ts,      // Issued At
-            'sid' => $this->secretId,     // JWT secret key ID
+            // 'jti' => null,  // JWT ID
             'tza' => \date('T'),          // Timezone abbreviation (custom)
-            'exp' => $ts + $this->ttl,    // Expiration Time
         ];
 
         if ($this->remember) {
