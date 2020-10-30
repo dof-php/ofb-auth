@@ -229,7 +229,7 @@ class JWT
      * @return string
      * @throw
      */
-    public function sign(string $text, string $algo, string $secret)
+    public static function sign(string $text, string $algo, string $secret)
     {
         if (! \in_array($algo, \hash_algos())) {
             throw new JWTExceptor('UNSUPPORTED_ALGORITHM', \compact('algo'));
