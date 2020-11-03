@@ -4,7 +4,7 @@ namespace DOF\OFB\Auth\SDK\V1;
 
 use Exception;
 
-// JWT issuer For older PHP version use
+// JWT issuer for older PHP version use
 class CompatibleJWTIssuer
 {
     private $ttl = 86400;
