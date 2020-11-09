@@ -101,7 +101,7 @@ class JWT
 
         if ($this->onJWTIssued) {
             try {
-                $result = ($this->onJWTIssued)($token, F::unsplat(...$params));
+                $result = ($this->onJWTIssued)($token, ...$params);
             } catch (Throwable $th) {
                 throw new JWTExceptor('AFTER_ISSUE_HOOK_FAILED', \compact('result'), $th);
             }
