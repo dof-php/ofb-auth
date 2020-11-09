@@ -48,6 +48,7 @@ class JWT
 
     // callbacks
     private $onJWTIssued;
+    private $onJWTVerified;
     private $onJWTExpired;
 
     public function issue(...$params)
@@ -207,6 +208,16 @@ class JWT
 
             throw new ExpiredJWT(\compact('exp', 'tza'));
         }
+        if ($this->onJWTVerified) {
+            try {
+                $result = ($this->onJWTVerified)($token, $params);
+            } catch (Throwable $th) {
+                throw new JWTExceptor('ON_JWT_VERIFIED_CALLBACK_EXCEPTION', $th);
+            }
+            if (true !== $result) {
+                throw new InvalidJWT('ON_JWT_VERIFIED_CALLBACK_FAILURE', \compact('result'));
+            }
+        }
 
         if (\is_array($parse)) {
             $parse = [
@@ -325,6 +336,13 @@ class JWT
     public function setOnJWTIssued(Closure $onJWTIssued)
     {
         $this->onJWTIssued = $onJWTIssued;
+
+        return $this;
+    }
+
+    public function setOnJWTVerified(Closure $onJWTVerified)
+    {
+        $this->onJWTVerified = $onJWTVerified;
 
         return $this;
     }

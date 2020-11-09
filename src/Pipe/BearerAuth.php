@@ -52,7 +52,7 @@ class BearerAuth
         // parse and get secret id
         $data = JWT::parse($token);
         if (\is_null($skid = ($data['header']['kid'] ?? null)) || ((! \is_string($skid)) && (! \is_int($skid)))) {
-            return $response->abort(401, 'MISSING_OR_INVALID_TOKEN_SECRET_KEY_ID', compact('skid'));
+            return $response->abort(401, 'MISSING_OR_INVALID_TOKEN_SECRET_KEY_ID', \compact('skid'));
         }
 
         $static = static::class;
@@ -73,6 +73,11 @@ class BearerAuth
         try {
             $jwt = JWT::setSecretKey($skey);
 
+            if (\method_exists($this, 'onJWTVerified')) {
+                $jwt->setOnJWTVerified(function ($token, $params) {
+                    return $this->onJWTVerified($token, $params);
+                });
+            }
             if (\method_exists($this, 'onJWTExpired')) {
                 $jwt->setOnJWTExpired(function ($token, $params) {
                     $this->onJWTExpired($token, $params);
